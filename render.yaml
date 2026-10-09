@@ -1,0 +1,10 @@
+services:
+  - type: worker
+    name: kod-to-dosya
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python kodbot.py
+    plan: free
+    envVars:
+      - key: TELEGRAM_TOKEN
+        sync: false
