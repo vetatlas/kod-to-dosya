@@ -1,10 +1,21 @@
-import os, io
+import os, io, threading
+from http.server import HTTPServer, BaseHTTPRequestHandler
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes, CallbackQueryHandler
 from telegram.constants import ParseMode
 
 TOKEN = os.environ.get("TELEGRAM_TOKEN")
-gecici = {}  # {user_id: kod}
+PORT = int(os.environ.get("PORT", 8080))
+gecici = {}
+
+class HealthHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200); self.end_headers()
+        self.wfile.write(b"OK")
+    def log_message(self, *a): pass
+
+def run_http():
+    HTTPServer(("0.0.0.0", PORT), HealthHandler).serve_forever()
 
 async def start(update, context):
     await update.message.reply_text(
@@ -73,6 +84,7 @@ async def format_secildi(update, context):
     )
 
 def main():
+    threading.Thread(target=run_http, daemon=True).start()
     app = Application.builder().token(TOKEN).build()
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CallbackQueryHandler(format_secildi, pattern="^fmt_"))
